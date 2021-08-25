@@ -50,4 +50,21 @@ class CartController extends AbstractController
             'total' => $total
         ]);
     }
+
+    /**
+     * @Route("/cart/delete/{id}", name="cart_delete", requirements={"id": "\d+"})
+     */
+    public function delete($id, ProductRepository $productRepository, CartService $cartService) {
+        $product = $productRepository->find($id);
+
+        if (!$product) {
+            throw $this->createNotFoundException("le produit $id n'existe pas et ne peut pas être supprimé");
+        }
+
+        $cartService->delete($id);
+
+        $this->addFlash("success", "Le produit a bien été supprimé du panier");
+
+        return $this->redirectToRoute("cart_show");
+    }
 }

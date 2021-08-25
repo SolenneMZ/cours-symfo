@@ -6,12 +6,17 @@ use App\Form\CategoryType;
 use App\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException as ExceptionAccessDeniedException;
 
 class CategoryController extends AbstractController
 {
@@ -27,8 +32,7 @@ class CategoryController extends AbstractController
 
     /**
      * @Route("/admin/category/create", name="category_create")
-     *
-     * @return void
+     * @IsGranted("ROLE_ADMIN", message="vous n'avez pas le droit d'accéder à cette ressource")
      */
     public function create(Request $request, SluggerInterface $slugger, EntityManagerInterface $em) {
         $form = $this->createForm(CategoryType::class);
@@ -55,18 +59,22 @@ class CategoryController extends AbstractController
     /**
      * @Route("/admin/category/{id}/edit", name="category_edit")
      */
-    public function edit($id, CategoryRepository $categoryRepository, Request $request, EntityManagerInterface $em, Security $security, SluggerInterface $slugger) {
-        $user = $security->getUser();
-
-        if($user===null) {
-            return $this->redirectToRoute('security_login');
-        }
-
-        if (!in_array("ROLE_ADMIN", $user->getRoles())) {
-            throw new AccessDeniedException("Accès refusé");
-        }
-
+    public function edit($id, CategoryRepository $categoryRepository, Request $request, EntityManagerInterface $em, SluggerInterface $slugger) {
         $category = $categoryRepository->find($id);
+        if (!$category) {
+            throw new NotFoundHttpException("Cette catégorie n'existe pas");
+        }
+
+        $user = $this->getUser();
+
+        if (!$user) {
+            throw $this->redirectToRoute("security_login");
+        }
+
+        if ($user !== $category->getOwner()) {
+            throw new AccessDeniedHttpException("Vous n'êtes pas le propriétaires de cette catégorie");
+        }
+
 
         $form = $this->createForm(CategoryType::class, $category);
         $form->handleRequest($request);

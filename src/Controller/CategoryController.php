@@ -65,15 +65,16 @@ class CategoryController extends AbstractController
             throw new NotFoundHttpException("Cette catégorie n'existe pas");
         }
 
-        $user = $this->getUser();
+        $this->denyAccessUnlessGranted('CAN_EDIT', $category, "Vous n'êtes pas le propriétaire de cette catégorie");
+        // $user = $this->getUser();
 
-        if (!$user) {
-            throw $this->redirectToRoute("security_login");
-        }
+        // if (!$user) {
+        //     throw $this->redirectToRoute("security_login");
+        // }
 
-        if ($user !== $category->getOwner()) {
-            throw new AccessDeniedHttpException("Vous n'êtes pas le propriétaires de cette catégorie");
-        }
+        // if ($user !== $category->getOwner()) {
+        //     throw new AccessDeniedHttpException("Vous n'êtes pas le propriétaires de cette catégorie");
+        // }
 
 
         $form = $this->createForm(CategoryType::class, $category);

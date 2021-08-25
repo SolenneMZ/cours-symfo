@@ -10,7 +10,18 @@
     </head>
     <body>
         {% include "shared/_nav.html.twig" %}
+
         <div class="container pt-5">
+        
+            {% for rubrique, messages in app.flashes %}
+            {# {{dump(rubrique)}} => "succes" #}
+                <div class="alert alert-{{rubrique}}">
+                    {% for message in messages %}
+                        <p>{{message}}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
             {% block body %}
             {% endblock %}
         </div>

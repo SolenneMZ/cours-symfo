@@ -2,6 +2,7 @@
 
 namespace App\Cart;
 
+use App\Entity\Product\CartItem;
 use App\Repository\ProductRepository;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
@@ -39,6 +40,11 @@ class CartService
         foreach ($this->session->get('cart', []) as $id => $qty) {
             $product = $this->productRepository->find($id);
 
+            // si pas de produit, on "continue" la boucle en allant au prochain foreach, donc on ignore ce qu'il y a en dessous
+            if(!$product) {
+                continue;
+            }
+
             $total += $product->getPrice() * $qty;
 
         }
@@ -52,10 +58,16 @@ class CartService
         foreach ($this->session->get('cart', []) as $id => $qty) {
             $product = $this->productRepository->find($id);
 
-            $detailedCart[] = [
-                'product' => $product,
-                'qty' => $qty
-            ];
+            if(!$product) {
+                continue;
+            }
+            
+            // $detailedCart[] = [
+            //     'product' => $product,
+            //     'qty' => $qty
+            // ];
+
+            $detailedCart[] = new CartItem($product, $qty);
 
         }
 

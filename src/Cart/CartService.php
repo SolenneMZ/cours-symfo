@@ -2,7 +2,7 @@
 
 namespace App\Cart;
 
-use App\Entity\Product\CartItem;
+use App\Cart\CartItem;
 use App\Repository\ProductRepository;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
@@ -61,7 +61,7 @@ class CartService
             if(!$product) {
                 continue;
             }
-            
+
             // $detailedCart[] = [
             //     'product' => $product,
             //     'qty' => $qty
